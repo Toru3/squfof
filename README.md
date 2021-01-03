@@ -1,4 +1,4 @@
-#Shanks's square forms factorization
+# Shanks's square forms factorization
 
 ## example
 ```rust
