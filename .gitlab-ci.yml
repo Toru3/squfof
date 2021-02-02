@@ -7,21 +7,17 @@ image: "rust:latest"
 test:fmt:
   script:
     - rustup toolchain install nightly --component rustfmt
-    - rustup default nightly
-    - rustup update
     - rustup --version && rustc --version && cargo --version
     - cargo fmt --all -- --check
 
 test:test:
   script:
-    - rustup default nightly
-    - rustup update
+    - rustup toolchain install nightly
     - rustup --version && rustc --version && cargo --version
     - cargo test --all --verbose
 
 test:bench:
   script:
-    - rustup default nightly
-    - rustup update
+    - rustup toolchain install nightly
     - rustup --version && rustc --version && cargo --version
     - cargo bench --all --verbose
