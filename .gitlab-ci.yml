@@ -6,8 +6,8 @@ image: "rust:latest"
 # Use cargo to test the project
 test:fmt:
   script:
-    - rustup default nightly
     - rustup toolchain install nightly --component rustfmt
+    - rustup default nightly
     - rustup update
     - rustup --version && rustc --version && cargo --version
     - cargo fmt --all -- --check
