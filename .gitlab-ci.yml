@@ -4,20 +4,21 @@
 image: "rust:latest"
 
 # Use cargo to test the project
-test:fmt:
+test:check:
   script:
-    - rustup toolchain install nightly --component rustfmt
+    - rustup toolchain install nightly --component rustfmt clippy
     - rustup --version && rustc --version && cargo --version
     - cargo fmt --all -- --check
+    - cargo clippy --workspace --all-targets --all-features --verbose -- -D warnings
 
 test:test:
   script:
     - rustup toolchain install nightly
     - rustup --version && rustc --version && cargo --version
-    - cargo test --all --verbose
+    - cargo test --workspace --verbose
 
 test:bench:
   script:
     - rustup toolchain install nightly
     - rustup --version && rustc --version && cargo --version
-    - cargo bench --all --verbose
+    - cargo bench --workspace --verbose
