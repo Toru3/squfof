@@ -15,8 +15,8 @@ categories = ["no-std"]
 
 [dependencies]
 num-traits = "0.2.14"
-ring-algorithm = "0.2.2"
-smallvec = "1.6.0"
+ring-algorithm = "0.4.0"
+smallvec = "1.6.1"
 [dev-dependencies]
-rand = "0.8.0"
-is-prime-for-primitive-int = "0.3.1"
+rand = "0.8.4"
+is-prime-for-primitive-int = "0.5.0"
