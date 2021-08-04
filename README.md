@@ -7,3 +7,6 @@ let n = 991 * 997;
 let f = square_form_factorization(n).unwrap();
 assert!(f == 991 || f == 997);
 ```
+
+# Licence
+AGPL-3.0-or-later
