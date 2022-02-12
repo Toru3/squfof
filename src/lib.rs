@@ -1,5 +1,6 @@
-#![no_std]
+#![cfg_attr(not(test), no_std)]
 #![feature(step_trait)]
+use arrayvec::ArrayVec;
 use core::iter::Step;
 use num_traits::int::PrimInt;
 use ring_algorithm::gcd;
@@ -39,14 +40,11 @@ fn is_parfect_square<T: PrimInt>(n: T) -> bool {
     n == sn * sn
 }
 
-fn foward_step<T: PrimInt + Step>(nn: T, k: T, limit: T, sn: T) -> Option<(T, T)>
+fn foward_step<T: PrimInt + Step, const N: usize>(nn: T, k: T, limit: T, sn: T) -> Option<(T, T)>
 where
     for<'x> &'x T: core::ops::Rem<&'x T, Output = T>,
 {
-    use smallvec::SmallVec;
-    const MAX_REMAINDER_SIZE: usize = 64;
-    let mut q_remain: SmallVec<[_; MAX_REMAINDER_SIZE]> =
-        SmallVec::with_capacity(MAX_REMAINDER_SIZE);
+    let mut q_remain = ArrayVec::<T, N>::new();
     let k2 = k.unsigned_shl(1);
     let up = limit * k2;
     let mut p0 = sn;
@@ -71,7 +69,7 @@ where
         } else if q1 < up {
             let t = q1 / gcd(k2, q1);
             if t < limit {
-                if q_remain.len() >= MAX_REMAINDER_SIZE {
+                if q_remain.len() >= N {
                     return None;
                 }
                 q_remain.push(t);
@@ -100,13 +98,17 @@ fn backward_step<T: PrimInt + Step>(mut p0: T, mut q0: T, mut q1: T, limit: T, s
     None
 }
 
-fn square_form_factorization_aux<T: PrimInt + Step>(n: T, k: T, limit: T) -> Option<T>
+fn square_form_factorization_aux<T: PrimInt + Step, const N: usize>(
+    n: T,
+    k: T,
+    limit: T,
+) -> Option<T>
 where
     for<'x> &'x T: core::ops::Rem<&'x T, Output = T>,
 {
     let nn = n.checked_mul(&k)?;
     let sn = sqrt(nn).unwrap();
-    let (sq, p) = foward_step(nn, k, limit, sn)?;
+    let (sq, p) = foward_step::<T, N>(nn, k, limit, sn)?;
     let p0 = ((sn - p) / sq) * sq + p;
     let q1 = backward_step(p0, sq, (nn - p0 * p0) / sq, limit, sn)?;
     let result = q1 / gcd(q1, k.unsigned_shl(1));
@@ -140,9 +142,8 @@ where
     if n < two {
         return None;
     }
-    let prime_table = [2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41, 43, 47, 53];
-    for p in prime_table.iter() {
-        if let Some(p) = T::from(*p) {
+    for p in [2, 3, 5, 7, 11] {
+        if let Some(p) = T::from(p) {
             if (n % p).is_zero() {
                 return Some(p);
             }
@@ -153,7 +154,7 @@ where
         return Some(sn);
     }
     let l = two * sqrt(two * sn).unwrap();
-    let ks = [
+    const KS: [i16; 16] = [
         1,
         3,
         5,
@@ -171,9 +172,9 @@ where
         5 * 7 * 11,
         3 * 5 * 7 * 11,
     ];
-    for k in ks.iter() {
-        if let Some(k) = T::from(*k) {
-            let f = square_form_factorization_aux(n, k, l);
+    for k in KS {
+        if let Some(k) = T::from(k) {
+            let f = square_form_factorization_aux::<T, 64>(n, k, l);
             if f.is_some() {
                 return f;
             }
@@ -185,6 +186,7 @@ where
 #[cfg(test)]
 mod tests {
     use crate::*;
+    use rayon::prelude::*;
     #[test]
     fn squfof_u32_1() {
         use is_prime_for_primitive_int::IsPrime;
@@ -245,29 +247,28 @@ mod tests {
             }
         }
     }
+    fn gen_prime(rng: &mut impl rand::Rng) -> u64 {
+        use is_prime_for_primitive_int::IsPrime;
+        loop {
+            let p = rng.gen::<u64>() >> 17;
+            if p.is_prime() {
+                return p;
+            }
+        }
+    }
     #[test]
     fn squfof_pq() {
-        use is_prime_for_primitive_int::IsPrime;
-        use rand::prelude::*;
         let mut rng = rand::thread_rng();
-        for _ in 0..1_000 {
-            let mut p: u32;
-            let mut q: u32;
-            loop {
-                p = rng.gen();
-                if p.is_prime() {
-                    break;
-                }
-            }
-            loop {
-                q = rng.gen();
-                if q.is_prime() {
-                    break;
-                }
-            }
+        let v = (0..100)
+            .into_iter()
+            .map(|_| (gen_prime(&mut rng), gen_prime(&mut rng)))
+            .collect::<Vec<_>>();
+        v.into_par_iter().for_each(|(p, q)| {
+            dbg!(p, q);
             let n = p as u128 * q as u128;
+            dbg!(n);
             let f = square_form_factorization(n).unwrap();
             assert!(f == p.into() || f == q.into());
-        }
+        });
     }
 }
