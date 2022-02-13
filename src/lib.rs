@@ -268,7 +268,7 @@ mod tests {
             let n = p as u128 * q as u128;
             dbg!(n);
             let f = square_form_factorization(n).unwrap();
-            assert!(f == p.into() || f == q.into());
+            assert!(f == (p as u128) || f == (q as u128));
         });
     }
 }
