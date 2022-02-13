@@ -1,6 +1,6 @@
 [package]
 name = "squfof"
-version = "0.2.3"
+version = "0.2.4"
 authors = ["Toru3 <ryuutet@gmail.com>"]
 edition = "2018"
 description = "Shanks's square forms factorization"
