@@ -260,7 +260,6 @@ mod tests {
     fn squfof_pq() {
         let mut rng = rand::thread_rng();
         let v = (0..100)
-            .into_iter()
             .map(|_| (gen_prime(&mut rng), gen_prime(&mut rng)))
             .collect::<Vec<_>>();
         v.into_par_iter().for_each(|(p, q)| {
