@@ -1,7 +1,5 @@
 #![cfg_attr(not(test), no_std)]
-#![feature(step_trait)]
 use arrayvec::ArrayVec;
-use core::iter::Step;
 use num_traits::int::PrimInt;
 use ring_algorithm::gcd;
 
@@ -40,7 +38,12 @@ fn is_parfect_square<T: PrimInt>(n: T) -> bool {
     n == sn * sn
 }
 
-fn foward_step<T: PrimInt + Step, const N: usize>(nn: T, k: T, limit: T, sn: T) -> Option<(T, T)>
+fn foward_step<T: PrimInt + Into<u128>, const N: usize>(
+    nn: T,
+    k: T,
+    limit: T,
+    sn: T,
+) -> Option<(T, T)>
 where
     for<'x> &'x T: core::ops::Rem<&'x T, Output = T>,
 {
@@ -50,7 +53,7 @@ where
     let mut p0 = sn;
     let mut q0 = T::one();
     let mut q1 = nn - sn * sn;
-    for _ in T::zero()..limit.unsigned_shl(2) {
+    for _ in 0..limit.unsigned_shl(2).into() {
         let b = (sn + p0) / q1;
         let p1 = b * q1 - p0;
         let q2 = if p0 >= p1 {
@@ -79,8 +82,14 @@ where
     None
 }
 
-fn backward_step<T: PrimInt + Step>(mut p0: T, mut q0: T, mut q1: T, limit: T, sn: T) -> Option<T> {
-    for _ in T::zero()..limit.unsigned_shl(2) {
+fn backward_step<T: PrimInt + Into<u128>>(
+    mut p0: T,
+    mut q0: T,
+    mut q1: T,
+    limit: T,
+    sn: T,
+) -> Option<T> {
+    for _ in 0..limit.unsigned_shl(2).into() {
         let b = (sn + p0) / q1;
         let p1 = b * q1 - p0;
         let q2 = if p0 >= p1 {
@@ -98,7 +107,7 @@ fn backward_step<T: PrimInt + Step>(mut p0: T, mut q0: T, mut q1: T, limit: T, s
     None
 }
 
-fn square_form_factorization_aux<T: PrimInt + Step, const N: usize>(
+fn square_form_factorization_aux<T: PrimInt + Into<u128>, const N: usize>(
     n: T,
     k: T,
     limit: T,
@@ -130,11 +139,11 @@ where
 /// * [素因数分解アルゴリズム(特にSQUFOF)のこと](https://lemniscus.hatenablog.com/entry/20130226/1361874593)
 ///```
 ///use squfof::square_form_factorization;
-///let n = 991 * 997;
+///let n = 991u32 * 997;
 ///let f = square_form_factorization(n).unwrap();
 ///assert!(f == 991 || f == 997);
 ///```
-pub fn square_form_factorization<T: PrimInt + Step>(n: T) -> Option<T>
+pub fn square_form_factorization<T: PrimInt + Into<u128>>(n: T) -> Option<T>
 where
     for<'x> &'x T: core::ops::Rem<&'x T, Output = T>,
 {
