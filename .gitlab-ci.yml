@@ -1,20 +1,61 @@
-image: "rust:latest"
-
-test:check:
+image: "toru3/rust:latest"
+test:
+  stage: test
   script:
-    - rustup toolchain install nightly --component rustfmt clippy
-    - rustup --version && rustc --version && cargo --version
-    - cargo fmt --all -- --check
-    - cargo clippy --workspace --all-targets --all-features --verbose -- -D warnings
-
-test:test:
-  script:
-    - rustup toolchain install nightly
-    - rustup --version && rustc --version && cargo --version
-    - cargo test --workspace --verbose
-
-test:bench:
-  script:
-    - rustup toolchain install nightly
-    - rustup --version && rustc --version && cargo --version
-    - cargo bench --workspace --verbose
+    - rustup default "$RUST_VERSION"
+    # キャッシュの設定
+    - if [ "${DISABLE_CACHE:-false}" = "false" ]; then
+    -     export CARGO_HOME="$CI_PROJECT_DIR/cargo"
+    -     mkdir -p $CARGO_HOME target_cache
+    -     ln -s /usr/local/cargo/bin $CARGO_HOME/bin
+    -     ln -s /usr/local/cargo/env $CARGO_HOME/env
+    -     ln -s target_cache target
+    - fi
+    # 現在のversionの表示
+    - rustup --version && cargo --version
+    # Cargo.lock の更新
+    - if [ "${USE_MINIMAL_VERSIONS:-false}" = "false" ]; then
+    -     time cargo +nightly update
+    - else
+    -     time cargo +nightly update -Z minimal-versions
+    - fi
+    - cargo fetch # ソースコードのダウンロード
+    - cargo fmt --all --check --verbose # フォーマットチェック
+    - cargo clippy --workspace --all-targets $FEATURES -- -D warnings
+    - cargo test --workspace $FEATURES
+  cache:
+    - key: "crates.io-${USE_MINIMAL_VERSIONS}"
+      paths:
+        - cargo/bin/
+        - cargo/registry/index/
+        - cargo/registry/cache/
+        - cargo/git/db/
+    - key: "target-${RUST_VERSION}"
+      paths:
+        - target_cache/
+  artifacts:
+    when: always
+    paths:
+      - lib.xml
+      - doc.xml
+    reports:
+      junit:
+        - lib.xml
+        - doc.xml
+  variables:
+    CARGO_UNSTABLE_SPARSE_REGISTRY: "true"
+  parallel:
+    matrix:
+      - RUST_VERSION:
+        - "stable"
+        - "beta"
+        USE_MINIMAL_VERSIONS:
+        - "false"
+        - "true"
+        FEATURES:
+        - "--all-features"
+  retry:
+    max: 2
+    when:
+      - api_failure
+      - runner_system_failure
