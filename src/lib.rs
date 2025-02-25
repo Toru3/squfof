@@ -14,7 +14,7 @@ fn sqrt<T: PrimInt>(n: T) -> Option<T> {
     } else if n.is_zero() {
         return Some(T::zero());
     }
-    let s = (bits(n) + 1) / 2;
+    let s = bits(n).div_ceil(2);
     let mut x = T::one().unsigned_shl(s);
     loop {
         let t = n / x;
