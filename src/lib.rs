@@ -66,7 +66,7 @@ where
         q1 = q2;
         if is_parfect_square(q1) {
             let sq = sqrt(q1).unwrap();
-            if !q_remain.iter().any(|q| *q == sq) {
+            if !q_remain.contains(&sq) {
                 return Some((sq, p0));
             }
         } else if q1 < up {
