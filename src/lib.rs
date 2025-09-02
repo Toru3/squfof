@@ -208,7 +208,7 @@ mod tests {
                 continue;
             }
             let f = square_form_factorization(n).unwrap();
-            assert!(n % f == 0);
+            assert!(n.is_multiple_of(f));
         }
     }
     #[test]
@@ -222,7 +222,7 @@ mod tests {
                 continue;
             }
             if let Some(f) = square_form_factorization(n) {
-                assert!(n % f == 0);
+                assert!(n.is_multiple_of(f));
             }
         }
     }
@@ -238,7 +238,7 @@ mod tests {
                 continue;
             }
             let f = square_form_factorization(n).unwrap();
-            assert!(n % f == 0);
+            assert!(n.is_multiple_of(f));
         }
     }
     #[test]
@@ -252,7 +252,7 @@ mod tests {
                 continue;
             }
             if let Some(f) = square_form_factorization(n) {
-                assert!(n % f == 0);
+                assert!(n.is_multiple_of(f));
             }
         }
     }
